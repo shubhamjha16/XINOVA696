@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview A quiz generation AI agent for a given topic.
+ * @fileOverview A quiz generation AI agent for a given topic, based on a provided flowchart.
  *
  * - generateTopicQuiz - A function that handles the quiz generation process.
  * - GenerateTopicQuizInput - The input type for the generateTopicQuiz function.
@@ -11,7 +11,10 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const GenerateTopicQuizInputSchema = z.string().describe('The topic for which to generate a quiz.');
+const GenerateTopicQuizInputSchema = z.object({
+  topic: z.string().describe('The computer science topic for which to generate the quiz.'),
+  flowchart: z.string().describe('The text-based flowchart to base the quiz questions on.'),
+});
 export type GenerateTopicQuizInput = z.infer<typeof GenerateTopicQuizInputSchema>;
 
 const QuizQuestionSchema = z.object({
@@ -27,19 +30,19 @@ const GenerateTopicQuizOutputSchema = z.object({
 });
 export type GenerateTopicQuizOutput = z.infer<typeof GenerateTopicQuizOutputSchema>;
 
-export async function generateTopicQuiz(topic: GenerateTopicQuizInput): Promise<GenerateTopicQuizOutput> {
-  return generateTopicQuizFlow(topic);
+export async function generateTopicQuiz(input: GenerateTopicQuizInput): Promise<GenerateTopicQuizOutput> {
+  return generateTopicQuizFlow(input);
 }
 
 const prompt = ai.definePrompt({
   name: 'generateTopicQuizPrompt',
   input: {schema: GenerateTopicQuizInputSchema},
   output: {schema: GenerateTopicQuizOutputSchema},
-  prompt: `You are an expert educator specializing in computer science. Your task is to generate a 15-question quiz for the given topic.
+  prompt: `You are an expert educator specializing in computer science. Your task is to generate a 15-question quiz for the given topic, based on the provided flowchart.
 
   The quiz should have the following structure:
-  - Questions 1-10 should progress in difficulty from easy to medium to hard, testing foundational understanding and gradually increasing complexity.
-  - Questions 11-15 should be coding-based challenges designed to assess the ability to implement and apply what has been learned in a practical context.
+  - Questions 1-10 should progress in difficulty from easy to medium to hard, testing foundational understanding and gradually increasing complexity based on the flowchart.
+  - Questions 11-15 should be coding-based challenges designed to assess the ability to implement and apply what has been learned in a practical context, inspired by the flowchart concepts.
 
   Each question should include:
   - question: The text of the quiz question.
@@ -49,8 +52,10 @@ const prompt = ai.definePrompt({
   - explanation: A detailed explanation of the correct answer.
 
   Topic: {{{topic}}}
+  Flowchart:
+  {{{flowchart}}}
 
-  Ensure the quiz is comprehensive, covering the key concepts of the topic, and that the questions are well-written and engaging.
+  Ensure the quiz is comprehensive, covering the key concepts of the topic as laid out in the flowchart, and that the questions are well-written and engaging.
   Output the quiz as a JSON object.
   `,
 });
@@ -62,9 +67,9 @@ const generateTopicQuizFlow = ai.defineFlow(
     outputSchema: GenerateTopicQuizOutputSchema,
     retries: 3,
   },
-  async topic => {
+  async input => {
     try {
-      const {output} = await prompt(topic);
+      const {output} = await prompt(input);
       return output!;
     } catch (e) {
       console.error('Error generating topic quiz:', e);

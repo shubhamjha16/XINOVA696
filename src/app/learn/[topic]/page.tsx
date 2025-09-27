@@ -1,7 +1,7 @@
 
 import { generateBackgroundTheory } from '@/ai/flows/generate-background-theory';
 import { generateTopicFlowchart } from '@/ai/flows/generate-topic-flowchart';
-import { generateTopicQuiz } from '@/ai/flows/generate-topic-quiz';
+import { generateTopicQuiz, GenerateTopicQuizOutput } from '@/ai/flows/generate-topic-quiz';
 import { LearnClient } from '@/components/learn/LearnClient';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
@@ -23,15 +23,33 @@ export default async function LearnPage({ params }: LearnPageProps) {
     return result.reason instanceof Error ? result.reason.message : 'An unknown error occurred during generation.';
   }
 
-  const [theoryResult, flowchartResult, quizResult] = await Promise.allSettled([
+  // Generate theory and flowchart in parallel first
+  const [theoryResult, flowchartResult] = await Promise.allSettled([
     generateBackgroundTheory({ topic: decodedTopic }),
     generateTopicFlowchart({ topic: decodedTopic }),
-    generateTopicQuiz(decodedTopic),
   ]);
 
   const theoryData = getResultOrError(theoryResult);
   const flowchartData = getResultOrError(flowchartResult);
-  const quizData = getResultOrError(quizResult);
+
+  let quizData: GenerateTopicQuizOutput | string;
+
+  // If flowchart generation was successful, generate the quiz based on it
+  if (typeof flowchartData !== 'string') {
+    const quizResult = await Promise.allSettled([
+      generateTopicQuiz({ topic: decodedTopic, flowchart: flowchartData.flowchart }),
+    ]);
+    quizData = getResultOrError(quizResult[0]);
+  } else {
+    // If flowchart failed, try to generate quiz with just the topic, or show an error
+    const quizResult = await Promise.allSettled([
+        generateTopicQuiz({ topic: decodedTopic, flowchart: 'Could not generate flowchart.' }),
+      ]);
+    quizData = getResultOrError(quizResult[0]);
+    if (typeof quizData !== 'string' && quizData.quiz.length === 0) {
+        quizData = 'Quiz generation failed because the flowchart could not be created.';
+    }
+  }
   
   const allFailed = [theoryData, flowchartData, quizData].every(data => typeof data === 'string');
   
