@@ -25,31 +25,44 @@ async function safeGenerate<T>(promise: Promise<T>): Promise<T | string> {
 export default async function LearnPage({ params }: LearnPageProps) {
   const decodedTopic = decodeURIComponent(params.topic);
 
-  // 1. Generate Background Theory
+  // Generate theory first, as it's needed by the flowchart
   const theoryResult = await safeGenerate(generateBackgroundTheory({ topic: decodedTopic }));
   const theory = typeof theoryResult !== 'string' ? theoryResult.theory : `Error generating theory: ${theoryResult}`;
 
-  // 2. Generate Flowchart based on the theory
-  const flowchartResult = await safeGenerate(
-    generateTopicFlowchart({
-      topic: decodedTopic,
-      theory: typeof theoryResult !== 'string' ? theoryResult.theory : 'No theory available.',
-    })
-  );
+  // Run flowchart and quiz generation in parallel
+  const [flowchartResult, quizResult] = await Promise.all([
+    safeGenerate(
+      generateTopicFlowchart({
+        topic: decodedTopic,
+        theory: typeof theoryResult !== 'string' ? theoryResult.theory : 'No theory available.',
+      })
+    ),
+    safeGenerate(
+      generateTopicQuiz({
+        topic: decodedTopic,
+        // The quiz will be generated based on the flowchart, which we will get from the result of the other promise.
+        // For now, we pass a placeholder. This dependency is handled below.
+        flowchart: 'No flowchart available.',
+      })
+    ),
+  ]);
+
   const flowchart = typeof flowchartResult !== 'string' ? flowchartResult.flowchart : `Error generating flowchart: ${flowchartResult}`;
   
-  // 3. Generate Quiz based on the flowchart
-  const quizResult = await safeGenerate(
-    generateTopicQuiz({
-      topic: decodedTopic,
-      flowchart: typeof flowchartResult !== 'string' ? flowchartResult.flowchart : 'No flowchart available.',
-    })
-  );
-  const quizData = typeof quizResult !== 'string' ? quizResult : { quiz: [] };
-  const quizError = typeof quizResult === 'string' ? `Error generating quiz: ${quizResult}` : undefined;
+  // Now, if the flowchart is available, we can pass it to the quiz generation.
+  // This is a bit of a logical leap for the static analysis, but in a real app,
+  // we would regenerate the quiz if the flowchart was successfully created.
+  // For this simplified model, we will proceed with the quiz generated without the flowchart if it failed.
+  const finalQuizResult = typeof flowchartResult !== 'string' 
+    ? await safeGenerate(generateTopicQuiz({ topic: decodedTopic, flowchart: flowchartResult.flowchart }))
+    : quizResult;
+
+  const quizData = typeof finalQuizResult !== 'string' ? finalQuizResult : { quiz: [] };
+  const quizError = typeof finalQuizResult === 'string' ? `Error generating quiz: ${finalQuizResult}` : undefined;
+
 
   // Check if all generations failed to show a top-level error
-  const allFailed = [theoryResult, flowchartResult, quizResult].every(result => typeof result === 'string');
+  const allFailed = [theoryResult, flowchartResult, finalQuizResult].every(result => typeof result === 'string');
   
   if (allFailed) {
     return (
@@ -77,3 +90,4 @@ export default async function LearnPage({ params }: LearnPageProps) {
     </div>
   );
 }
+
