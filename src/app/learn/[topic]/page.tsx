@@ -1,6 +1,4 @@
 
-"use client";
-
 import { TheorySection } from '@/components/learn/TheorySection';
 import { FlowchartSection } from '@/components/learn/FlowchartSection';
 import { QuizInitialSection } from '@/components/learn/QuizInitialSection';
