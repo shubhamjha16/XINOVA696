@@ -15,19 +15,39 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { CheckCircle, XCircle, BookOpen, RefreshCw } from "lucide-react";
+import { CheckCircle, XCircle, BookOpen, RefreshCw, Terminal } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 
 interface QuizSectionProps {
   quizData: QuizData;
+  error?: string;
 }
 
-export function QuizSection({ quizData }: QuizSectionProps) {
+export function QuizSection({ quizData, error }: QuizSectionProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
 
   const questions = quizData.quiz;
+  
+  if (error) {
+    return (
+      <>
+        <CardHeader>
+          <CardTitle className="font-headline">Quiz</CardTitle>
+        </CardHeader>
+        <CardContent>
+           <Alert variant="destructive">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        </CardContent>
+      </>
+    )
+  }
+
   const currentQuestion = questions[currentQuestionIndex];
 
   const handleSelectOption = (optionIndex: number) => {

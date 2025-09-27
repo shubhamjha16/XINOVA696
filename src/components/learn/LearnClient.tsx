@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { TheorySection } from "./TheorySection";
 import { FlowchartSection } from "./FlowchartSection";
 import { QuizSection } from "./QuizSection";
@@ -11,9 +11,10 @@ interface LearnClientProps {
   theory: string;
   flowchart: string;
   quizData: QuizData;
+  quizError?: string;
 }
 
-export function LearnClient({ theory, flowchart, quizData }: LearnClientProps) {
+export function LearnClient({ theory, flowchart, quizData, quizError }: LearnClientProps) {
   return (
     <Tabs defaultValue="theory" className="w-full">
       <TabsList className="grid w-full grid-cols-3">
@@ -29,7 +30,7 @@ export function LearnClient({ theory, flowchart, quizData }: LearnClientProps) {
             <FlowchartSection flowchart={flowchart} />
         </TabsContent>
         <TabsContent value="quiz">
-            <QuizSection quizData={quizData} />
+            <QuizSection quizData={quizData} error={quizError} />
         </TabsContent>
       </Card>
     </Tabs>

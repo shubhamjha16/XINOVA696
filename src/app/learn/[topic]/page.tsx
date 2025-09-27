@@ -32,9 +32,9 @@ export default async function LearnPage({ params }: LearnPageProps) {
   const flowchartData = getResultOrError(flowchartResult);
   const quizData = getResultOrError(quizResult);
 
-  const hasError = [theoryData, flowchartData, quizData].some(data => typeof data === 'string');
+  const allFailed = [theoryData, flowchartData, quizData].every(data => typeof data === 'string');
   
-  if (hasError) {
+  if (allFailed) {
     return (
       <Alert variant="destructive" className="max-w-2xl mx-auto">
         <Terminal className="h-4 w-4" />
@@ -52,9 +52,10 @@ export default async function LearnPage({ params }: LearnPageProps) {
         Learn: <span className="text-primary">{decodedTopic}</span>
       </h1>
       <LearnClient
-        theory={typeof theoryData !== 'string' ? theoryData.theory : ''}
-        flowchart={typeof flowchartData !== 'string' ? flowchartData.flowchart : ''}
+        theory={typeof theoryData !== 'string' ? theoryData.theory : `Error generating theory: ${theoryData}`}
+        flowchart={typeof flowchartData !== 'string' ? flowchartData.flowchart : `Error generating flowchart: ${flowchartData}`}
         quizData={typeof quizData !== 'string' ? quizData : { quiz: [] }}
+        quizError={typeof quizData === 'string' ? `Error generating quiz: ${quizData}` : undefined}
       />
     </div>
   );
