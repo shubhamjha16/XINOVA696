@@ -70,6 +70,7 @@ const generateProgressiveQuizFlow = ai.defineFlow(
     name: 'generateProgressiveQuizFlow',
     inputSchema: GenerateProgressiveQuizInputSchema,
     outputSchema: GenerateProgressiveQuizOutputSchema,
+    retries: 3,
   },
   async input => {
     const {output} = await prompt(input);

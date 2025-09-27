@@ -60,6 +60,7 @@ const generateTopicQuizFlow = ai.defineFlow(
     name: 'generateTopicQuizFlow',
     inputSchema: GenerateTopicQuizInputSchema,
     outputSchema: GenerateTopicQuizOutputSchema,
+    retries: 3,
   },
   async topic => {
     const {output} = await prompt(topic);

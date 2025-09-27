@@ -43,6 +43,7 @@ const generateBackgroundTheoryFlow = ai.defineFlow(
     name: 'generateBackgroundTheoryFlow',
     inputSchema: GenerateBackgroundTheoryInputSchema,
     outputSchema: GenerateBackgroundTheoryOutputSchema,
+    retries: 3,
   },
   async input => {
     const {output} = await prompt(input);

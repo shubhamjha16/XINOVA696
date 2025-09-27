@@ -1,4 +1,3 @@
-// Use server directive.
 'use server';
 
 /**
@@ -38,6 +37,7 @@ const generateTopicFlowchartFlow = ai.defineFlow(
     name: 'generateTopicFlowchartFlow',
     inputSchema: GenerateTopicFlowchartInputSchema,
     outputSchema: GenerateTopicFlowchartOutputSchema,
+    retries: 3,
   },
   async input => {
     const {output} = await prompt(input);
