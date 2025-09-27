@@ -6,7 +6,7 @@ import { Footer } from "@/components/common/Footer";
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'XinovaAI',
+  title: 'XINOVA696',
   description: 'Intelligent, AI-driven platform to optimize and personalize computer science learning.',
 };
 

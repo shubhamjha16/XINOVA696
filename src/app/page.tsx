@@ -7,10 +7,10 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center text-center space-y-12">
       <div className="space-y-4 max-w-4xl">
         <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tighter text-primary">
-          Welcome to XinovaAI
+          Welcome to XINOVA696
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-          Xinova is an intelligent, AI-driven platform designed to optimize and personalize computer science learning. Users simply input any unit from their syllabus, and Xinova generates a dynamic learning experience.
+          XINOVA696 is an intelligent, AI-driven platform designed to optimize and personalize computer science learning. Users simply input any unit from their syllabus, and XINOVA696 generates a dynamic learning experience.
         </p>
       </div>
 
@@ -30,7 +30,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Xinova provides a comprehensive yet concise explanation of core concepts, designed to offer both theoretical depth and practical insights. This ensures you not only understand the fundamentals but can also grasp their real-world applications.
+                XINOVA696 provides a comprehensive yet concise explanation of core concepts, designed to offer both theoretical depth and practical insights. This ensures you not only understand the fundamentals but can also grasp their real-world applications.
               </CardDescription>
             </CardContent>
           </Card>
@@ -65,7 +65,7 @@ export default function Home() {
 
       <div className="w-full max-w-4xl pt-12 text-center">
         <p className="text-lg text-muted-foreground leading-relaxed">
-          Ideal for students preparing for exams, professionals looking to refine their skills, or educators enhancing their curriculum, Xinova turns any computer science syllabus unit into an interactive and dynamic learning experience. With its efficient, step-by-step learning approach, Xinova ensures that users not only comprehend topics but also build hands-on problem-solving skills.
+          Ideal for students preparing for exams, professionals looking to refine their skills, or educators enhancing their curriculum, XINOVA696 turns any computer science syllabus unit into an interactive and dynamic learning experience. With its efficient, step-by-step learning approach, XINOVA696 ensures that users not only comprehend topics but also build hands-on problem-solving skills.
         </p>
       </div>
     </div>

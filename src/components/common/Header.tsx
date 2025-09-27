@@ -8,7 +8,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2">
           <Logo />
           <span className="text-xl font-bold font-headline text-primary">
-            XinovaAI
+            XINOVA696
           </span>
         </Link>
       </div>
