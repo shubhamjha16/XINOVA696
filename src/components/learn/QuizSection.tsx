@@ -1,8 +1,10 @@
+
 "use client";
 
 import { useState } from "react";
 import type { QuizData, QuizQuestion } from "@/lib/types";
 import {
+  Card,
   CardContent,
   CardHeader,
   CardTitle,
@@ -33,7 +35,7 @@ export function QuizSection({ quizData, error }: QuizSectionProps) {
   
   if (error) {
     return (
-      <>
+      <Card className="mt-4">
         <CardHeader>
           <CardTitle className="font-headline">Quiz</CardTitle>
         </CardHeader>
@@ -44,7 +46,24 @@ export function QuizSection({ quizData, error }: QuizSectionProps) {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         </CardContent>
-      </>
+      </Card>
+    )
+  }
+  
+  if (!questions || questions.length === 0) {
+      return (
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle className="font-headline">Quiz</CardTitle>
+        </CardHeader>
+        <CardContent>
+           <Alert>
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>No Questions</AlertTitle>
+            <AlertDescription>The quiz could not be generated for this topic.</AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -78,7 +97,7 @@ export function QuizSection({ quizData, error }: QuizSectionProps) {
 
   if (submitted) {
     return (
-      <>
+      <Card className="mt-4">
         <CardHeader>
           <CardTitle className="font-headline">Quiz Results</CardTitle>
           <CardDescription>You scored {score.toFixed(0)}%</CardDescription>
@@ -140,12 +159,12 @@ export function QuizSection({ quizData, error }: QuizSectionProps) {
             Try Again
           </Button>
         </CardContent>
-      </>
+      </Card>
     );
   }
 
   return (
-    <>
+    <Card className="mt-4">
       <CardHeader>
         <CardTitle className="font-headline">Quiz</CardTitle>
         <CardDescription>
@@ -209,6 +228,6 @@ export function QuizSection({ quizData, error }: QuizSectionProps) {
           )}
         </div>
       </CardContent>
-    </>
+    </Card>
   );
 }
