@@ -10,8 +10,7 @@ export default function Home() {
           Welcome to XinovaAI
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-          An intelligent, AI-driven platform to optimize and personalize computer science learning.
-          Enter any syllabus unit, and let Xinova generate a dynamic learning experience for you.
+          Xinova is an intelligent, AI-driven platform designed to optimize and personalize computer science learning. Users simply input any unit from their syllabus, and Xinova generates a dynamic learning experience.
         </p>
       </div>
 
@@ -31,7 +30,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Get comprehensive yet concise explanations of core concepts, blending theory with practical insights.
+                Xinova provides a comprehensive yet concise explanation of core concepts, designed to offer both theoretical depth and practical insights. This ensures you not only understand the fundamentals but can also grasp their real-world applications.
               </CardDescription>
             </CardContent>
           </Card>
@@ -44,7 +43,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Visualize relationships between concepts with an AI-generated text-based flowchart for better retention.
+                The AI generates a text-based flowchart to visualize the core concepts and relationships within the topic. This serves as an easy reference for the user and as a model that can quickly trace through key processes, facilitating better retention and understanding.
               </CardDescription>
             </CardContent>
           </Card>
@@ -57,11 +56,17 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Test your knowledge with a 15-question quiz, including coding challenges and instant feedback.
+                A 15-question quiz with progressive difficulty and coding challenges. Each question comes with instant feedback and detailed explanations to ensure you learn from your mistakes and reinforce concepts.
               </CardDescription>
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      <div className="w-full max-w-4xl pt-12 text-center">
+        <p className="text-lg text-muted-foreground leading-relaxed">
+          Ideal for students preparing for exams, professionals looking to refine their skills, or educators enhancing their curriculum, Xinova turns any computer science syllabus unit into an interactive and dynamic learning experience. With its efficient, step-by-step learning approach, Xinova ensures that users not only comprehend topics but also build hands-on problem-solving skills.
+        </p>
       </div>
     </div>
   );
