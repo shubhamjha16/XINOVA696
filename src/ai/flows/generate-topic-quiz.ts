@@ -10,11 +10,10 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { generateTopicFlowchart } from './generate-topic-flowchart';
 
 const GenerateTopicQuizInputSchema = z.object({
   topic: z.string().describe('The computer science topic for which to generate the quiz.'),
-  flowchart: z.string().describe('The text-based flowchart to base the quiz questions on. If N/A, a flowchart will be generated.'),
+  flowchart: z.string().describe('The text-based flowchart to base the quiz questions on.'),
 });
 export type GenerateTopicQuizInput = z.infer<typeof GenerateTopicQuizInputSchema>;
 
@@ -39,21 +38,21 @@ const prompt = ai.definePrompt({
   name: 'generateTopicQuizPrompt',
   input: {schema: GenerateTopicQuizInputSchema},
   output: {schema: GenerateTopicQuizOutputSchema},
-  prompt: `You are an expert educator specializing in computer science. Your task is to generate a 15-question quiz for the given topic, based on the provided flowchart.
+  prompt: `You are an expert educator specializing in computer science. Your task is to generate a 15-question quiz for the given topic, based ONLY on the provided flowchart.
 
-  The quiz should have the following structure:
-  - Questions 1-10 should progress in difficulty from easy to medium to hard, testing foundational understanding and gradually increasing complexity based on the flowchart.
-  - Questions 11-15 should be coding-based challenges designed to assess the ability to implement and apply what has been learned in a practical context, inspired by the flowchart concepts.
+  The quiz must have the following structure:
+  - Questions 1-10 should progress in difficulty from easy to medium to hard, testing foundational understanding and gradually increasing complexity based on the concepts and relationships in the flowchart.
+  - Questions 11-15 must be proper coding-based challenges designed to assess the ability to implement and apply what has been learned in a practical context, inspired by the flowchart concepts.
 
-  Each question should include:
+  Each question must include:
   - question: The text of the quiz question.
-  - options: An array of possible answer options (at least 4 options).
+  - options: An array of at least 4 possible answer options.
   - correctAnswerIndex: The index of the correct answer in the options array.
-  - difficulty: The difficulty level of the question (easy, medium, hard, or coding).
+  - difficulty: The difficulty level of the question ('easy', 'medium', 'hard', or 'coding').
   - explanation: A detailed explanation of the correct answer.
 
   Topic: {{{topic}}}
-  Flowchart:
+  Flowchart to base the quiz on:
   {{{flowchart}}}
 
   Ensure the quiz is comprehensive, covering the key concepts of the topic as laid out in the flowchart, and that the questions are well-written and engaging.
@@ -68,29 +67,14 @@ const generateTopicQuizFlow = ai.defineFlow(
     outputSchema: GenerateTopicQuizOutputSchema,
     retries: 3,
   },
-  async (input) => {
-    let flowchart = input.flowchart;
-    
-    // If no flowchart is provided, generate one.
-    if (flowchart === 'N/A') {
-      try {
-        const flowchartResponse = await generateTopicFlowchart({ topic: input.topic });
-        flowchart = flowchartResponse.flowchart;
-      } catch (e) {
-        console.error('Error generating flowchart within quiz flow:', e);
-        // If flowchart generation fails, we'll proceed with a placeholder.
-        // The prompt is robust enough to handle a less-than-ideal flowchart.
-        flowchart = `Could not generate a flowchart for ${input.topic}. Please generate a general quiz.`;
-      }
-    }
-
+  async input => {
     try {
-      const {output} = await prompt({ topic: input.topic, flowchart });
+      const {output} = await prompt(input);
       return output!;
     } catch (e) {
       console.error('Error generating topic quiz:', e);
       // Return a valid, empty QuizData object on failure to prevent crash
-      return { quiz: [] };
+      return {quiz: []};
     }
   }
 );

@@ -1,7 +1,7 @@
 
 import { generateBackgroundTheory } from '@/ai/flows/generate-background-theory';
 import { generateTopicFlowchart } from '@/ai/flows/generate-topic-flowchart';
-import { generateTopicQuiz, GenerateTopicQuizOutput } from '@/ai/flows/generate-topic-quiz';
+import { generateTopicQuiz } from '@/ai/flows/generate-topic-quiz';
 import { LearnClient } from '@/components/learn/LearnClient';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
@@ -25,16 +25,31 @@ async function safeGenerate<T>(promise: Promise<T>): Promise<T | string> {
 export default async function LearnPage({ params }: LearnPageProps) {
   const decodedTopic = decodeURIComponent(params.topic);
 
-  // Generate content serially to enforce dependencies
-  const theoryData = await safeGenerate(generateBackgroundTheory({ topic: decodedTopic }));
+  // 1. Generate Background Theory
+  const theoryResult = await safeGenerate(generateBackgroundTheory({ topic: decodedTopic }));
+  const theory = typeof theoryResult !== 'string' ? theoryResult.theory : `Error generating theory: ${theoryResult}`;
+
+  // 2. Generate Flowchart based on the theory
+  const flowchartResult = await safeGenerate(
+    generateTopicFlowchart({
+      topic: decodedTopic,
+      theory: typeof theoryResult !== 'string' ? theoryResult.theory : 'No theory available.',
+    })
+  );
+  const flowchart = typeof flowchartResult !== 'string' ? flowchartResult.flowchart : `Error generating flowchart: ${flowchartResult}`;
   
-  const flowchartData = await safeGenerate(generateTopicFlowchart({ topic: decodedTopic }));
-  
-  const flowchartForQuiz = typeof flowchartData !== 'string' ? flowchartData.flowchart : "N/A";
-  const quizData = await safeGenerate(generateTopicQuiz({ topic: decodedTopic, flowchart: flowchartForQuiz }));
+  // 3. Generate Quiz based on the flowchart
+  const quizResult = await safeGenerate(
+    generateTopicQuiz({
+      topic: decodedTopic,
+      flowchart: typeof flowchartResult !== 'string' ? flowchartResult.flowchart : 'No flowchart available.',
+    })
+  );
+  const quizData = typeof quizResult !== 'string' ? quizResult : { quiz: [] };
+  const quizError = typeof quizResult === 'string' ? `Error generating quiz: ${quizResult}` : undefined;
 
   // Check if all generations failed to show a top-level error
-  const allFailed = [theoryData, flowchartData, quizData].every(data => typeof data === 'string');
+  const allFailed = [theoryResult, flowchartResult, quizResult].every(result => typeof result === 'string');
   
   if (allFailed) {
     return (
@@ -54,10 +69,10 @@ export default async function LearnPage({ params }: LearnPageProps) {
         Learn: <span className="text-primary">{decodedTopic}</span>
       </h1>
       <LearnClient
-        theory={typeof theoryData !== 'string' ? theoryData.theory : `Error generating theory: ${theoryData}`}
-        flowchart={typeof flowchartData !== 'string' ? flowchartData.flowchart : `Error generating flowchart: ${flowchartData}`}
-        quizData={typeof quizData !== 'string' ? quizData : { quiz: [] }}
-        quizError={typeof quizData === 'string' ? `Error generating quiz: ${quizData}` : undefined}
+        theory={theory}
+        flowchart={flowchart}
+        quizData={quizData}
+        quizError={quizError}
       />
     </div>
   );
