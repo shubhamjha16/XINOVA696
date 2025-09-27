@@ -63,7 +63,13 @@ const generateTopicQuizFlow = ai.defineFlow(
     retries: 3,
   },
   async topic => {
-    const {output} = await prompt(topic);
-    return output!;
+    try {
+      const {output} = await prompt(topic);
+      return output!;
+    } catch (e) {
+      console.error('Error generating topic quiz:', e);
+      // Return a valid, empty QuizData object on failure to prevent crash
+      return { quiz: [] };
+    }
   }
 );
