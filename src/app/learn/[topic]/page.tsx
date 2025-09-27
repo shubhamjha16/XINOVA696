@@ -15,38 +15,24 @@ type LearnPageProps = {
 export default async function LearnPage({ params }: LearnPageProps) {
   const decodedTopic = decodeURIComponent(params.topic);
 
-  let theoryData: Awaited<ReturnType<typeof generateBackgroundTheory>> | string;
-  let flowchartData: Awaited<ReturnType<typeof generateTopicFlowchart>> | string;
-  let quizData: Awaited<ReturnType<typeof generateTopicQuiz>> | string;
-
-  try {
-    const [theoryResult, flowchartResult, quizResult] = await Promise.allSettled([
-      generateBackgroundTheory({ topic: decodedTopic }),
-      generateTopicFlowchart({ topic: decodedTopic }),
-      generateTopicQuiz(decodedTopic),
-    ]);
-
-    const getResultOrError = <T,>(result: PromiseSettledResult<T>): T | string => {
-      if (result.status === 'fulfilled') {
-        return result.value;
-      }
-      console.error("AI Generation Error:", result.reason);
-      return result.reason instanceof Error ? result.reason.message : 'An unknown error occurred during generation.';
+  const getResultOrError = <T,>(result: PromiseSettledResult<T>): T | string => {
+    if (result.status === 'fulfilled') {
+      return result.value;
     }
-
-    theoryData = getResultOrError(theoryResult);
-    flowchartData = getResultOrError(flowchartResult);
-    quizData = getResultOrError(quizResult);
-
-  } catch (error) {
-    console.error("Critical Error during AI Generation:", error);
-    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
-    theoryData = `Failed to generate: ${errorMessage}`;
-    flowchartData = `Failed to generate: ${errorMessage}`;
-    quizData = `Failed to generate: ${errorMessage}`;
+    console.error("AI Generation Error:", result.reason);
+    return result.reason instanceof Error ? result.reason.message : 'An unknown error occurred during generation.';
   }
 
+  const [theoryResult, flowchartResult, quizResult] = await Promise.allSettled([
+    generateBackgroundTheory({ topic: decodedTopic }),
+    generateTopicFlowchart({ topic: decodedTopic }),
+    generateTopicQuiz(decodedTopic),
+  ]);
 
+  const theoryData = getResultOrError(theoryResult);
+  const flowchartData = getResultOrError(flowchartResult);
+  const quizData = getResultOrError(quizResult);
+  
   const allFailed = [theoryData, flowchartData, quizData].every(data => typeof data === 'string');
   
   if (allFailed) {
