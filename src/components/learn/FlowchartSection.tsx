@@ -1,47 +1,77 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { generateBackgroundTheory } from "@/ai/flows/generate-background-theory";
+import { useState } from "react";
 import { generateTopicFlowchart } from "@/ai/flows/generate-topic-flowchart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Terminal } from "lucide-react";
+import { Terminal, Lock } from "lucide-react";
+import { Button } from "../ui/button";
 
 interface FlowchartSectionProps {
   topic: string;
+  theory: string | null;
+  onFlowchartGenerated: (flowchart: string) => void;
 }
 
-export function FlowchartSection({ topic }: FlowchartSectionProps) {
+export function FlowchartSection({ topic, theory, onFlowchartGenerated }: FlowchartSectionProps) {
   const [flowchart, setFlowchart] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [started, setStarted] = useState(false);
 
-  useEffect(() => {
-    async function fetchFlowchart() {
-      try {
-        setLoading(true);
-        setError(null);
-        // First get theory, then get flowchart
-        const theoryResult = await generateBackgroundTheory({ topic });
-        const flowchartResult = await generateTopicFlowchart({
-          topic,
-          theory: theoryResult.theory,
-        });
-        setFlowchart(flowchartResult.flowchart);
-      } catch (e) {
-        const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
-        setError(`Failed to generate flowchart: ${errorMessage}`);
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
+  async function fetchFlowchart() {
+    if (!theory) {
+      setError("Background theory must be generated before creating a flowchart.");
+      return;
     }
+    try {
+      setLoading(true);
+      setError(null);
+      const flowchartResult = await generateTopicFlowchart({
+        topic,
+        theory: theory,
+      });
+      setFlowchart(flowchartResult.flowchart);
+      onFlowchartGenerated(flowchartResult.flowchart);
+    } catch (e) {
+      const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
+      setError(`Failed to generate flowchart: ${errorMessage}`);
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }
+  
+  const handleStart = () => {
+    setStarted(true);
     fetchFlowchart();
-  }, [topic]);
+  }
+
+  const handleRetry = () => {
+    fetchFlowchart();
+  }
 
   const renderContent = () => {
+    if (!theory) {
+      return (
+         <div className="flex flex-col items-center justify-center text-center space-y-4 min-h-60">
+            <Lock className="h-8 w-8 text-muted-foreground" />
+            <p className="text-muted-foreground">Please generate the background theory first.</p>
+        </div>
+      )
+    }
+    
+    if (!started) {
+      return (
+        <div className="flex flex-col items-center justify-center text-center space-y-4 min-h-60">
+            <p>Now, let's create a conceptual flowchart based on the theory.</p>
+            <Button onClick={handleStart} size="lg">Generate Flowchart</Button>
+        </div>
+      )
+    }
+
     if (loading) {
       return (
          <div className="space-y-2">
@@ -55,11 +85,14 @@ export function FlowchartSection({ topic }: FlowchartSectionProps) {
     
     if (error) {
       return (
-        <Alert variant="destructive">
-          <Terminal className="h-4 w-4" />
-          <AlertTitle>Generation Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="flex flex-col items-center justify-center text-center space-y-4 min-h-60">
+          <Alert variant="destructive">
+            <Terminal className="h-4 w-4" />
+            <AlertTitle>Generation Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+           <Button onClick={handleRetry} variant="secondary">Try Again</Button>
+        </div>
       );
     }
     
@@ -77,7 +110,6 @@ export function FlowchartSection({ topic }: FlowchartSectionProps) {
 
     return null;
   }
-
 
   return (
     <Card className="mt-4">
