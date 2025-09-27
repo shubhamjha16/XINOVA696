@@ -10,10 +10,11 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { generateTopicFlowchart } from './generate-topic-flowchart';
 
 const GenerateTopicQuizInputSchema = z.object({
   topic: z.string().describe('The computer science topic for which to generate the quiz.'),
-  flowchart: z.string().describe('The text-based flowchart to base the quiz questions on.'),
+  flowchart: z.string().describe('The text-based flowchart to base the quiz questions on. If N/A, a flowchart will be generated.'),
 });
 export type GenerateTopicQuizInput = z.infer<typeof GenerateTopicQuizInputSchema>;
 
@@ -67,9 +68,24 @@ const generateTopicQuizFlow = ai.defineFlow(
     outputSchema: GenerateTopicQuizOutputSchema,
     retries: 3,
   },
-  async input => {
+  async (input) => {
+    let flowchart = input.flowchart;
+    
+    // If no flowchart is provided, generate one.
+    if (flowchart === 'N/A') {
+      try {
+        const flowchartResponse = await generateTopicFlowchart({ topic: input.topic });
+        flowchart = flowchartResponse.flowchart;
+      } catch (e) {
+        console.error('Error generating flowchart within quiz flow:', e);
+        // If flowchart generation fails, we'll proceed with a placeholder.
+        // The prompt is robust enough to handle a less-than-ideal flowchart.
+        flowchart = `Could not generate a flowchart for ${input.topic}. Please generate a general quiz.`;
+      }
+    }
+
     try {
-      const {output} = await prompt(input);
+      const {output} = await prompt({ topic: input.topic, flowchart });
       return output!;
     } catch (e) {
       console.error('Error generating topic quiz:', e);
