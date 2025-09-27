@@ -12,31 +12,28 @@ type LearnPageProps = {
   };
 };
 
+// Helper to safely execute an AI generation function and return either the result or an error string
+async function safeGenerate<T>(promise: Promise<T>): Promise<T | string> {
+  try {
+    return await promise;
+  } catch (error) {
+    console.error("AI Generation Error:", error);
+    return error instanceof Error ? error.message : 'An unknown error occurred during generation.';
+  }
+}
+
 export default async function LearnPage({ params }: LearnPageProps) {
   const decodedTopic = decodeURIComponent(params.topic);
 
-  const getResultOrError = <T,>(result: PromiseSettledResult<T>): T | string => {
-    if (result.status === 'fulfilled') {
-      return result.value;
-    }
-    console.error("AI Generation Error:", result.reason);
-    return result.reason instanceof Error ? result.reason.message : 'An unknown error occurred during generation.';
-  }
-
-  // Generate all content in parallel to avoid timeouts
-  const [theoryResult, flowchartResult, quizResult] = await Promise.allSettled([
-    generateBackgroundTheory({ topic: decodedTopic }),
-    generateTopicFlowchart({ topic: decodedTopic }),
-    // The quiz flow is now self-contained and will use the flowchart logic internally
-    // by first attempting to generate a flowchart and then the quiz.
-    // This simplifies the page logic and keeps generation steps together.
-    generateTopicQuiz({ topic: decodedTopic, flowchart: "N/A" }), // Flowchart will be generated inside the flow
-  ]);
-
-  const theoryData = getResultOrError(theoryResult);
-  const flowchartData = getResultOrError(flowchartResult);
-  const quizData = getResultOrError(quizResult);
+  // Generate content serially to enforce dependencies
+  const theoryData = await safeGenerate(generateBackgroundTheory({ topic: decodedTopic }));
   
+  const flowchartData = await safeGenerate(generateTopicFlowchart({ topic: decodedTopic }));
+  
+  const flowchartForQuiz = typeof flowchartData !== 'string' ? flowchartData.flowchart : "N/A";
+  const quizData = await safeGenerate(generateTopicQuiz({ topic: decodedTopic, flowchart: flowchartForQuiz }));
+
+  // Check if all generations failed to show a top-level error
   const allFailed = [theoryData, flowchartData, quizData].every(data => typeof data === 'string');
   
   if (allFailed) {
@@ -51,10 +48,6 @@ export default async function LearnPage({ params }: LearnPageProps) {
     )
   }
 
-  // The flowchart data for the client can come from the flowchart generation or from within the quiz data if that was more successful
-  const finalFlowchart = typeof flowchartData !== 'string' ? flowchartData.flowchart : (typeof quizData !== 'string' && quizData.quiz.length > 0 ? 'Flowchart used for quiz generation is not displayed due to a generation error.' : `Error generating flowchart: ${flowchartData}`);
-
-
   return (
     <div className="w-full">
       <h1 className="text-3xl md:text-5xl font-bold font-headline tracking-tighter text-center mb-8">
@@ -62,7 +55,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
       </h1>
       <LearnClient
         theory={typeof theoryData !== 'string' ? theoryData.theory : `Error generating theory: ${theoryData}`}
-        flowchart={finalFlowchart}
+        flowchart={typeof flowchartData !== 'string' ? flowchartData.flowchart : `Error generating flowchart: ${flowchartData}`}
         quizData={typeof quizData !== 'string' ? quizData : { quiz: [] }}
         quizError={typeof quizData === 'string' ? `Error generating quiz: ${quizData}` : undefined}
       />
