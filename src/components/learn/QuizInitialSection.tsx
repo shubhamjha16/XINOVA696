@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Terminal } from "lucide-react";
+import { Terminal, Bot } from "lucide-react";
 import { QuizSection } from "./QuizSection";
 import { Button } from "../ui/button";
 import type { GenerateTopicQuizOutput } from "@/ai/flows/generate-topic-quiz";
@@ -12,12 +12,21 @@ interface QuizInitialSectionProps {
   loading: boolean;
   error: string | null;
   data: GenerateTopicQuizOutput | null;
-  onRetry: () => void;
+  onGenerate: () => void;
+  hasPrereqs: boolean;
 }
 
-export function QuizInitialSection({ loading, error, data, onRetry }: QuizInitialSectionProps) {
+export function QuizInitialSection({ loading, error, data, onGenerate, hasPrereqs }: QuizInitialSectionProps) {
 
   const renderContent = () => {
+    if (!hasPrereqs) {
+      return (
+         <div className="flex flex-col items-center justify-center text-center space-y-4 min-h-60">
+            <p className="text-muted-foreground">Please generate the flowchart first.</p>
+        </div>
+      );
+    }
+
     if (loading) {
       return (
         <div className="space-y-6">
@@ -41,7 +50,7 @@ export function QuizInitialSection({ loading, error, data, onRetry }: QuizInitia
             <AlertTitle>Generation Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-           <Button onClick={onRetry} variant="secondary">Try Again</Button>
+           <Button onClick={onGenerate} variant="secondary">Try Again</Button>
         </div>
       );
     }
@@ -52,7 +61,11 @@ export function QuizInitialSection({ loading, error, data, onRetry }: QuizInitia
     
     return (
         <div className="flex flex-col items-center justify-center text-center space-y-4 min-h-60">
-          <p className="text-muted-foreground">Quiz could not be generated.</p>
+          <p className="text-muted-foreground">Click the button to start a quiz based on the flowchart.</p>
+          <Button onClick={onGenerate} disabled={loading}>
+            <Bot className="mr-2" />
+            Start Quiz
+          </Button>
         </div>
     );
   }

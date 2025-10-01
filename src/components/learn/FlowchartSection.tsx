@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Terminal } from "lucide-react";
+import { Terminal, Bot } from "lucide-react";
 import { Button } from "../ui/button";
 import type { GenerateTopicFlowchartOutput } from "@/ai/flows/generate-topic-flowchart";
 
@@ -11,11 +11,20 @@ interface FlowchartSectionProps {
   loading: boolean;
   error: string | null;
   data: GenerateTopicFlowchartOutput | null;
-  onRetry: () => void;
+  onGenerate: () => void;
+  hasPrereqs: boolean;
 }
 
-export function FlowchartSection({ loading, error, data, onRetry }: FlowchartSectionProps) {
+export function FlowchartSection({ loading, error, data, onGenerate, hasPrereqs }: FlowchartSectionProps) {
   const renderContent = () => {
+    if (!hasPrereqs) {
+      return (
+         <div className="flex flex-col items-center justify-center text-center space-y-4 min-h-60">
+            <p className="text-muted-foreground">Please generate the background theory first.</p>
+        </div>
+      );
+    }
+
     if (loading) {
       return (
          <div className="space-y-2">
@@ -35,7 +44,7 @@ export function FlowchartSection({ loading, error, data, onRetry }: FlowchartSec
             <AlertTitle>Generation Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-           <Button onClick={onRetry} variant="secondary">Try Again</Button>
+           <Button onClick={onGenerate} variant="secondary">Try Again</Button>
         </div>
       );
     }
@@ -54,7 +63,11 @@ export function FlowchartSection({ loading, error, data, onRetry }: FlowchartSec
 
     return (
         <div className="flex flex-col items-center justify-center text-center space-y-4 min-h-60">
-          <p className="text-muted-foreground">Flowchart could not be generated.</p>
+          <p className="text-muted-foreground">Click the button to generate a flowchart from the background theory.</p>
+          <Button onClick={onGenerate} disabled={loading}>
+            <Bot className="mr-2" />
+            Generate Flowchart
+          </Button>
         </div>
     );
   }
